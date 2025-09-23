@@ -1,0 +1,9 @@
+torch>=1.6.0
+torchvision>=0.7.0
+tensorboard
+numpy
+scipy
+Pillow
+opencv-python
+tqdm
+matplotlib

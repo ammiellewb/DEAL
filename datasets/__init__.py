@@ -6,7 +6,7 @@ import os
 data_cfg = {
     'Cityscapes': {
         'cls': (Cityscapes, ActiveCityscapes),
-        'root': '/nfs/xs/Datasets/Segment/Cityscapes',
+        'root': '/home/ammiellewb/resources/datasets/cityscapes', # change this to your own path
         'base_size': (2048, 1024),
         'crop_size': (688, 688),
         'num_classes': 19,

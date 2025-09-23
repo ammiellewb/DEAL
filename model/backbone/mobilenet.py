@@ -71,7 +71,7 @@ class InvertedResidual(nn.Module):
 
 class MobileNetV2(nn.Module):
 
-    def __init__(self, output_stride=8, BatchNorm=None, width_mult=1., pretrained=True, mc_dropout=False):
+    def __init__(self, output_stride=8, BatchNorm=None, width_mult=1., pretrained=False, mc_dropout=False):
         super(MobileNetV2, self).__init__()
         block = InvertedResidual
         input_channel = 32
@@ -135,7 +135,7 @@ class MobileNetV2(nn.Module):
         return x, low_level_feat
 
     def _load_pretrained_model(self):
-        pretrain_dict = model_zoo.load_url('http://jeff95.me/models/mobilenet_v2-6a65762b.pth')
+        pretrain_dict = model_zoo.load_url('https://download.pytorch.org/models/mobilenet_v2-7ebf99e0.pth')
         model_dict = {}
         state_dict = self.state_dict()
         for k, v in pretrain_dict.items():

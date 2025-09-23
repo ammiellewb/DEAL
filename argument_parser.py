@@ -17,6 +17,8 @@ def parse_args(params=None):
     parser.add_argument('--base-size', type=str, default="513,513", help='base image size')
     parser.add_argument('--crop-size', type=str, default="513,513", help='crop image size')
 
+    parser.add_argument('--workers', type=int, default=4, help='number of data loading workers')
+
     # gpu
     parser.add_argument('--gpu-ids', type=str, default='0')
     parser.add_argument('--sync-bn', type=bool, default=False, help='whether to use sync bn (default: False)')

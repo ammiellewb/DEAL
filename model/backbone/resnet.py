@@ -2,8 +2,11 @@ import math
 import torch.nn as nn
 import torch.utils.model_zoo as model_zoo
 from model.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
-from torchvision.models.resnet import model_urls
 
+model_urls = {
+    'resnet50': 'https://download.pytorch.org/models/resnet50-0676ba61.pth',
+    'resnet101': 'https://download.pytorch.org/models/resnet101-63fe2227.pth',
+}
 
 class Bottleneck(nn.Module):
     expansion = 4
