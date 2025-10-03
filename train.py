@@ -46,8 +46,12 @@ def main():
 
     # test
     epoch = trainer.load_best_checkpoint()
+    """
     test_mIoU, test_Acc = trainer.validation(epoch, test=True)
     print('Test: best mIoU:', test_mIoU, 'pixelAcc:', test_Acc)
+    """
+    final_mIoU, final_Acc = trainer.validation(epoch, test=False)
+    print('Final Evaluation (on validation set): mIoU:', final_mIoU, 'pixelAcc:', final_Acc)
 
     writer.flush()
     writer.close()

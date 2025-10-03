@@ -1,5 +1,6 @@
 import torch
 import constants
+import wandb
 
 from torch.utils.data import DataLoader
 from model.sync_batchnorm.replicate import patch_replication_callback
@@ -64,6 +65,15 @@ class Trainer:
         self.evaluator = Evaluator(self.num_classes)
         self.best_mIoU = 0.
         self.best_Acc = 0.
+
+        if hasattr(args, 'use_wandb') and args.use_wandb:
+            wandb.init(
+                project=args.wandb_project if hasattr(args, 'wandb_project') else 'deal-implementation',
+                name=f"{args.checkname}_{saver.exp_dir.split('/')[-1]}",
+                config=vars(args),
+                dir=saver.exp_dir
+            )
+            wandb.watch(self.model, log_freq=100)
 
     def training(self, epoch, prefix='Train', evaluation=False):
         self.model.train()
@@ -133,6 +143,20 @@ class Trainer:
             self.writer.add_scalar(f'{prefix}/Acc', Acc, epoch)
             print('Epoch: {}, Acc: {:.3f}, mIoU: {:.3f}'.format(epoch, Acc, mIoU))
 
+        if hasattr(self.args, 'use_wandb') and self.args.use_wandb:
+            log_dict = {
+                f'{prefix}/train_loss': train_losses.avg,
+                f'{prefix}/learning_rate': get_learning_rate(self.optimizer)
+            }
+            if self.args.with_mask:
+                log_dict[f'{prefix}/seg_loss'] = seg_losses.avg
+                log_dict[f'{prefix}/mask_loss'] = mask_losses.avg
+                log_dict[f'{prefix}/gamma'] = self.model.mask_head.pam.gamma.item()
+            if evaluation:
+                log_dict[f'{prefix}/mIoU'] = mIoU
+                log_dict[f'{prefix}/Acc'] = Acc
+            wandb.log(log_dict, step=epoch)
+
     @torch.no_grad()
     def validation(self, epoch, test=False):
         self.model.eval()
@@ -196,6 +220,21 @@ class Trainer:
             }
             self.saver.save_checkpoint(state)
             print('save model at epoch', epoch)
+
+        if hasattr(self.args, 'use_wandb') and self.args.use_wandb:
+            log_dict = {
+                f'{prefix}/mIoU': mIoU,
+                f'{prefix}/Acc': Acc,
+                f'{prefix}/seg_loss': seg_losses.avg
+            }
+            if self.args.with_mask:
+                log_dict[f'{prefix}/mask_loss'] = mask_losses.avg
+            wandb.log(log_dict, step=epoch)
+            
+            if not test and mIoU > self.best_mIoU:
+                artifact = wandb.Artifact(f"model-epoch-{epoch}", type="model")
+                artifact.add_file(os.path.join(self.saver.exp_dir, "checkpoint.pth.tar"))
+                wandb.log_artifact(artifact)
 
         return mIoU, Acc
 

@@ -1,7 +1,9 @@
 from datasets import data_cfg
+import pandas as pd
+import os
 
 
-def build_datasets(dataset, base_size, crop_size, init_percent=None):
+def build_datasets(dataset, base_size, crop_size, init_percent=None, csv_path=None):
     if dataset not in data_cfg:
         raise NotImplementedError('no such dataset')
 
@@ -12,7 +14,10 @@ def build_datasets(dataset, base_size, crop_size, init_percent=None):
     if init_percent is None:  # 构建普通数据集
         trainset = cls(root, 'train', base_size, crop_size)  # model input size
     else:
-        trainset = active_cls(root, 'train', base_size, crop_size, init_percent)
+        if csv_path and os.path.exists(csv_path):
+            trainset = active_cls(root, 'train', base_size, crop_size, init_percent, csv_path=csv_path)
+        else:
+            trainset = active_cls(root, 'train', base_size, crop_size, init_percent)
 
     valset = cls(cfg['root'], 'val', base_size, crop_size)
     testset = cls(cfg['root'], 'test', base_size, crop_size)

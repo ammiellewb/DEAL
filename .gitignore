@@ -1,8 +1,10 @@
 .DS_Store
-
+/__pycache__/
 .idea
-*/__pycache__
+*/__pycache__/
+*/*/__pycache__/
 assets
 zoo
-
+/dealenv
 z.py
+/runs

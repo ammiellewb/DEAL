@@ -9,6 +9,7 @@ data_cfg = {
         'root': '/home/ammiellewb/resources/datasets/cityscapes', # change this to your own path
         'base_size': (2048, 1024),
         'crop_size': (688, 688),
+        'img_size': (512, 1024),  # test image size for active selector
         'num_classes': 19,
         'label_colors': get_label_name_colors(
             csv_path=os.path.join(os.path.dirname(__file__), 'cityscapes/cityscapes19.csv')

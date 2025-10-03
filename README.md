@@ -2,6 +2,63 @@
 
 https://arxiv.org/abs/2010.08705
 
+## Setup
+
+### Environment Variables
+
+Before running DEAL, set up the following environment variables for dataset paths:
+
+```bash
+# Required: Path to your datasets directory
+export DATASET_ROOT="/path/to/your/datasets"
+
+# Required: Path to Cityscapes dataset (if different from default)
+export CITYSCAPES_ROOT="/path/to/cityscapes"
+
+# Optional: CUDA installation path (defaults to /usr/local/cuda)
+export CUDA_HOME="/usr/local/cuda"
+```
+
+### Dataset Structure
+
+Ensure your Cityscapes dataset follows this structure:
+```
+cityscapes/
+├── leftImg8bit/
+│   ├── train/
+│   ├── val/
+│   └── test/
+├── gtFine-relabeled/
+│   ├── train/
+│   ├── val/
+│   └── test/
+├── train_img_paths.txt
+├── train_target_paths.txt
+├── val_img_paths.txt
+└── val_target_paths.txt
+```
+
+Generate the path files using:
+```bash
+python utils/make_cityscapes_lists.py
+```
+
+### Installation
+
+```bash
+pip install -r requirements.txt
+```
+
+### Running
+
+```bash
+# Train with active learning
+bash scripts/train.sh
+
+# Or run directly
+python train_active.py --dataset Cityscapes --base-size 512,512 --crop-size 512,512 --epochs 5
+```
+
 In this work, we propose a semantic **Difficulty-awarE Active Learning (DEAL)** method taking the semantic difficulty into consideration.
 To capture the semantic difficulty, we adopt a two-branch framework and utilize the wrong predicted result, which is termed as the **error mask**.
 It's a binary image where the right and wrong positions have a value 0 and 1, respectively.

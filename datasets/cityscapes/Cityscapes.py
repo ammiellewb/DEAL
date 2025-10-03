@@ -1,6 +1,8 @@
 import os
+import pandas as pd
 import random
 import numpy as np
+import torch
 from PIL import Image
 
 from datasets.base_dataset import BaseDataset, ActiveBaseDataset
@@ -51,18 +53,29 @@ class Cityscapes(BaseDataset):
     def get_transform(self, split):
         return get_transform(self.split, self.base_size, self.crop_size)
 
-
 class ActiveCityscapes(ActiveBaseDataset):
-    def __init__(self, root, split, base_size, crop_size, init_percent=10):
+    def __init__(self, root, split, base_size, crop_size, init_percent=10, csv_path=None):
         if split != 'train':
             raise ValueError('use class `Cityscapes` to instantiate val/test dataset')
 
-        train_img_paths = read_txt_as_list(os.path.join(root, 'train_img_paths.txt'))
-        train_target_paths = read_txt_as_list(os.path.join(root, 'train_target_paths.txt'))
+        if csv_path and os.path.exists(csv_path):
+            # load from CSV for regional active learning
+            label_img_paths, label_target_paths = self.load_from_csv(csv_path)
+            # load full training set for unlabeled pool
+            train_img_paths = read_txt_as_list(os.path.join(root, 'train_img_paths.txt'))
+            train_target_paths = read_txt_as_list(os.path.join(root, 'train_target_paths.txt'))
+            # remove labeled images from unlabeled pool
+            unlabel_img_paths = [p for p in train_img_paths if p not in label_img_paths]
+            unlabel_target_paths = [p for p in train_target_paths if p not in label_target_paths]
+            print(f"Unlabeled pool: {len(unlabel_img_paths)} images")
+        else:
+            # original behaviour - random split
+            train_img_paths = read_txt_as_list(os.path.join(root, 'train_img_paths.txt'))
+            train_target_paths = read_txt_as_list(os.path.join(root, 'train_target_paths.txt'))
 
-        # split data
-        label_img_paths, label_target_paths, unlabel_img_paths, unlabel_target_paths = \
-            self.random_split_train_data(train_img_paths, train_target_paths, init_percent)
+            # split data
+            label_img_paths, label_target_paths, unlabel_img_paths, unlabel_target_paths = \
+                self.random_split_train_data(train_img_paths, train_target_paths, init_percent)
 
         super(ActiveCityscapes, self).__init__(
             label_img_paths, label_target_paths, unlabel_img_paths, unlabel_target_paths,
@@ -100,6 +113,29 @@ class ActiveCityscapes(ActiveBaseDataset):
 
     def get_transform(self, split):
         return get_transform(self.split, self.base_size, self.crop_size)
+
+    def load_from_csv(self, csv_path):
+        # load regional data from CSV file
+        import sys
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        from config import config
+        
+        df = pd.read_csv(csv_path)
+        
+        # convert paths using config
+        df['image_path'] = df['image_path'].apply(config.convert_legacy_path)
+        df['mask_path'] = df['mask_path'].apply(config.convert_legacy_path)
+        
+        # ensure gtFine paths point to gtFine-relabeled
+        df['mask_path'] = df['mask_path'].str.replace('/gtFine/', '/gtFine-relabeled/')
+        
+        # extract unique image and mask paths for initialization type
+        init_rows = df[df['type'] == 'initialization']
+        label_img_paths = init_rows['image_path'].unique().tolist()
+        label_target_paths = init_rows['mask_path'].unique().tolist()
+        
+        print(f"loaded {len(label_img_paths)} unique images from CSV")
+        return label_img_paths, label_target_paths
 
     @staticmethod
     def random_split_train_data(img_paths, target_paths, percent):

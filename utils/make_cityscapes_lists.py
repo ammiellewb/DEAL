@@ -1,7 +1,10 @@
 import os
 from glob import glob
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import config
 
-cityscapes_root = '/home/ammiellewb/resources/datasets/cityscapes' # change this to your own path
+cityscapes_root = str(config.cityscapes_root)
 
 def make_list(split):
     img_root = os.path.join(cityscapes_root, 'leftImg8bit', split)

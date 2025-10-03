@@ -64,6 +64,12 @@ def parse_args(params=None):
     parser.add_argument('--resume-dir', type=str, default=None, help='resume exp dir')
     parser.add_argument('--resume-percent', type=int, default=None, help='resume active iteration')
 
+     # W&B arguments
+    parser.add_argument('--use-wandb', action='store_true', default=False,
+                       help='use weights and biases for logging')
+    parser.add_argument('--wandb-project', type=str, default='deal-implementation',
+                       help='wandb project name')
+
     args = parser.parse_args(params)
     args.base_size = [int(s) for s in args.base_size.split(',')]
     args.crop_size = [int(s) for s in args.crop_size.split(',')]

@@ -5,6 +5,7 @@ args = argument_parser.parse_args()
 pprint(vars(args))
 
 import os
+from config import config
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_ids  # 设置可见 gpus
@@ -19,10 +20,11 @@ import argument_parser
 import constants
 from datasets.build_datasets import build_datasets, data_cfg
 from model.deeplab import DeepLab
-from utils.calculate_weights import calculate_class_weights
+# from utils.calculate_weights import calculate_class_weights
 from utils.saver import Saver
 from utils.trainer import Trainer
 from utils.misc import AccCaches, get_curtime, write_list_to_txt, read_txt_as_list
+from utils.acquisition_functions import difficulty_aware_uncertainty_score, difficulty_aware_semantic_entropy
 from pprint import pprint
 from active_selection import get_active_selector
 import shutil
@@ -38,7 +40,8 @@ def is_interval(epoch):
 
 def main():
     random.seed(args.seed)  # active trainset
-    active_trainset, validset, testset = build_datasets(args.dataset, args.base_size, args.crop_size, args.init_percent)
+    csv_path = str(config.cityscapes_region_csv)
+    active_trainset, validset, testset = build_datasets(args.dataset, args.base_size, args.crop_size, args.init_percent, csv_path=csv_path)
 
     if args.resume_dir and args.resume_percent:  # 此 iteration 已选数据，但还未训练模型
         iter_dir = f'runs/{args.dataset}/{args.resume_dir}/runs_0{args.resume_percent}'

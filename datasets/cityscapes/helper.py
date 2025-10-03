@@ -1,7 +1,10 @@
 import os
 import glob
 import random
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from utils.misc import write_list_to_txt, read_txt_as_list, get_select_paths_by_idxs
+from config import config
 
 root = '/nfs/xs/Datasets/Segment/Cityscapes'
 
